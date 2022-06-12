@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
+    "start": "node --trace-warnings src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -15,5 +17,22 @@
   "bugs": {
     "url": "https://github.com/PCOffline/react-backend/issues"
   },
-  "homepage": "https://github.com/PCOffline/react-backend#readme"
+  "homepage": "https://github.com/PCOffline/react-backend#readme",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "bcrypt": "^5.0.1",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "express-session": "^1.17.3",
+    "mongoose": "^6.3.5",
+    "mongoose-unique-validator": "^3.0.0",
+    "morgan": "^1.10.0",
+    "passport": "^0.6.0",
+    "passport-local": "^1.0.0",
+    "session-file-store": "^1.5.0",
+    "uuid": "^8.3.2"
+  }
 }
