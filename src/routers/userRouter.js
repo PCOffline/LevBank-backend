@@ -5,7 +5,9 @@ import UserModel from '../models/user.js';
 const router = express.Router();
 
 router.get('/', adminOnly, (req, res) => {
-  res.json(UserModel.find());
+  UserModel.find()
+  .then((users) => Promise.all(users.map((user) => user.getFilteredUser())))
+  .then((users) => res.json(users));
 });
 
 router.get('/me', loggedInOnly, (req, res) => {
@@ -20,7 +22,6 @@ router.put('/approve', adminOnly, (req, res, next) => {
     .then((value) => value ? res.json(value) : res.sendStatus(404))
     .catch((err) => next(err));
   }
-  // TODO: Increase LC Value by $0.01
 );
 
 router.put('/', loggedInOnly, (req, res, next) => {
@@ -51,5 +52,11 @@ router.put('/promote', adminOnly, (req, res, next) => {
     .then((value) => (value ? res.json(value) : res.sendStatus(404)))
     .catch((err) => next(err));
 });
+
+router.get('/requests', adminOnly, (req, res, next) => {
+  UserModel.find({ isApproved: false })
+    .then((users) => res.json(users))
+    .catch((err) => next(err));
+})
 
 export default router;
