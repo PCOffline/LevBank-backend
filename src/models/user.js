@@ -47,9 +47,12 @@ UserSchema.methods.setBalance = async function (value) {
   if (value < 0) throw new Error('Balance cannot be negative');
   const balance = await this.getBalance();
 
+  // Get previous block
+  const [previousBlock] = await TransactionModel.find().sort({ $natural: -1 }).limit(1);
+
   // Create new transaction to modify the balance
-  if (value < balance) return TransactionModel.create({ sender: this.username, recipient: null, amount: value - balance });
-  else if (value > balance) return TransactionModel.create({ sender: null, recipient: this.username, amount: value - balance });
+  if (value < balance) return TransactionModel.create({ sender: this.username, recipient: null, amount: value - balance, prevHash: previousBlock?.hash ?? '0', type: 'transfer' });
+  if (value > balance) return TransactionModel.create({ sender: null, recipient: this.username, amount: value - balance, prevHash: previousBlock?.hash ?? '0', type: 'transfer' });
   return null;
 };
 

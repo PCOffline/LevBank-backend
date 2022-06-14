@@ -4,8 +4,8 @@ const { Schema, model } = mongoose;
 
 const TransactionSchema = new Schema(
   {
-    sender: { type: Schema.Types.String, required: true },
-    recipient: { type: Schema.Types.String, required: true },
+    sender: { type: Schema.Types.String, required: false },
+    recipient: { type: Schema.Types.String, required: false },
     amount: { type: Schema.Types.Number, required: true },
     type: { type: Schema.Types.String, enum: ['loan', 'transfer', 'repay'], required: true },
     timestamp: { type: Schema.Types.Date, default: new Date(), required: true },
