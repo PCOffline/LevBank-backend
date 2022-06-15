@@ -51,7 +51,7 @@ UserSchema.methods.setBalance = async function (value) {
   const [previousBlock] = await TransactionModel.find().sort({ $natural: -1 }).limit(1);
 
   // Create new transaction to modify the balance
-  if (value < balance) return TransactionModel.create({ sender: this.username, recipient: null, amount: value - balance, prevHash: previousBlock?.hash ?? '0', type: 'transfer' });
+  if (value < balance) return TransactionModel.create({ sender: this.username, recipient: null, amount: balance - value, prevHash: previousBlock?.hash ?? '0', type: 'transfer' });
   if (value > balance) return TransactionModel.create({ sender: null, recipient: this.username, amount: value - balance, prevHash: previousBlock?.hash ?? '0', type: 'transfer' });
   return null;
 };
