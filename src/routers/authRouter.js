@@ -11,20 +11,13 @@ router.post(
   (req, res, next) => {
     passport.authenticate(
       'local',
-      { passReqToCallback: true },
+      { passReqToCallback: true, successRedirect: '/user/me' },
       (err, user, info) => {
         if (err) return next(err);
         if (!user) return res.status(400).send(info.message);
         if (!user.isApproved) return res.status(400).send('Account is not approved');
         req.login(user, (err) => {
           if (err) return next(err);
-          return res.json({
-            firstName: req.user.firstName,
-            lastName: req.user.lastName,
-            username: req.user.username,
-            type: req.user.type,
-            balance: req.user.balance,
-          });
         });
       },
     )(req, res, next);
@@ -44,8 +37,7 @@ router.post('/register', loggedOutOnly, (req, res, next) => {
 });
 
 router.post('/logout', loggedInOnly, (req, res) => {
-  req.logout();
-  res.redirect('/login');
+  req.session.destroy(() => res.sendStatus(204));
 });
 
 export default router;
