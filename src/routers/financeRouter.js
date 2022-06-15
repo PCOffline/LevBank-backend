@@ -38,7 +38,7 @@ router.get('/exchange', async (req, res, next) => {
 });
 
 router.post('/transfer', loggedInOnly, async (req, res, next) => {
-  const { recipient, amount } = req.body;
+  const { recipient, amount, description } = req.body;
 
   if (amount < 0) {
     res.status(400).send("Amount can't be negative");
@@ -58,6 +58,7 @@ router.post('/transfer', loggedInOnly, async (req, res, next) => {
     type: 'transfer',
     recipient,
     amount,
+    description,
   }).catch((err) => next(err));
 
   if (await TransactionModel.validateTransactions().catch((err) => next(err))) res.status(500).send('Blockchain is invalid');

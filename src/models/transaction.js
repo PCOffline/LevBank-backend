@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 
 const { Schema, model } = mongoose;
 
@@ -8,6 +9,7 @@ const TransactionSchema = new Schema(
     recipient: { type: Schema.Types.String, required: false },
     amount: { type: Schema.Types.Number, required: true },
     type: { type: Schema.Types.String, enum: ['loan', 'transfer', 'repay'], required: true },
+    description: { type: Schema.Types.String },
     timestamp: { type: Schema.Types.Date, default: new Date(), required: true },
     prevHash: { type: Schema.Types.String, required: true },
   },
