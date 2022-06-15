@@ -8,13 +8,11 @@ import passport from 'passport';
 import LocalStrategy from 'passport-local';
 import dotenv from 'dotenv';
 import expressSession from 'express-session';
-import sessionFileStore from 'session-file-store';
 import morgan from 'morgan';
 import User from './models/user.js';
 import flash from 'connect-flash';
 import { v4 as uuid } from 'uuid';
-
-const FileStore = sessionFileStore(expressSession);
+import MongoStore from 'connect-mongo';
 
 dotenv.config();
 const app = express();
@@ -30,7 +28,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   expressSession({
-    store: new FileStore(),
+    store: new MongoStore({
+      mongoUrl: mongoUrl,
+      collection: 'sessions'
+    }),
     genid: (req) => uuid(),
     resave: false,
     saveUninitialized: true,
