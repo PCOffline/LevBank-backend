@@ -11,7 +11,7 @@ let usdToIls = { value: null, timestamp: null };
 
 // Return all transactions of the user
 router.get('/me', loggedInOnly, (req, res, next) => {
-  TransactionModel.find({ $or: [{ recipient: req.user._id }, { sender: req.user._id }] } )
+  TransactionModel.find({ $or: [{ recipient: req.user.username }, { sender: req.user.username }] } )
     .sort({ $natural: 1 })
     .then((transactions) => res.json(transactions))
     .catch((err) => next(err));
@@ -29,7 +29,7 @@ router.get('/exchange', async (req, res, next) => {
     }).catch((err) => next(err));
 
     usdToIls = {
-      value: response.data.data.ILS.value,
+      value: response?.data.data.ILS.value,
       timestamp: new Date(),
     };
   }
@@ -86,7 +86,7 @@ router.post('/loan', loggedInOnly, async (req, res, next) => {
     return;
   }
 
-  await LoanRequestSchema.create({
+  const request = await LoanRequestSchema.create({
     requester: req.user.username,
     requestee: recipient,
     type: 'loan',
@@ -96,7 +96,7 @@ router.post('/loan', loggedInOnly, async (req, res, next) => {
 
   if (await TransactionModel.validateTransactions().catch((err) => next(err))) res.status(500).send('Blockchain is invalid');
 
-  res.sendStatus(204);
+  res.json(request);
 
 });
 
@@ -128,7 +128,7 @@ router.post('/lend', loggedInOnly, async (req, res, next) => {
 
   const prevBlock = await TransactionModel.findOne({}).sort({ $natural: -1 }).catch((err) => next(err));
 
-  await TransactionModel.create({
+  const transaction = await TransactionModel.create({
     amount,
     recipient,
     sender: req.user.username,
@@ -138,7 +138,7 @@ router.post('/lend', loggedInOnly, async (req, res, next) => {
 
   if (await TransactionModel.validateTransactions().catch((err) => next(err))) res.status(500).send('Blockchain is invalid');
 
-  res.sendStatus(204);
+  res.sendStatus(200).json(transaction);
 
 });
 
@@ -280,7 +280,7 @@ router.post('/withdraw', loggedInOnly, async (req, res, next) => {
   await TransactionModel.create({
     recipient: request.requester,
     sender: req.user.username,
-    type: 'withdraw',
+    type: 'repay',
     amount: request.amount,
     prevHash: prevBlock?.hash ?? '',
   }).catch((err) => next(err));
