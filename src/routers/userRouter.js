@@ -21,7 +21,7 @@ router.get('/me', loggedInOnly, (req, res) => {
 router.put('/approve', adminOnly, (req, res, next) => {
   const { username } = req.body;
   UserModel.findOneAndUpdate({ username }, { isApproved: true }, { new: true })
-    .then((value) => value.getFilteredUser())
+    .then((value) => value?.getFilteredUser())
     .then((value) => value ? res.json(value) : res.sendStatus(404))
     .catch((err) => next(err));
   }
@@ -32,7 +32,7 @@ router.put('/', loggedInOnly, async (req, res, next) => {
   const newUser = await UserModel.findOneAndUpdate({ username: req.user.username }, { firstName, lastName, username, password }, { new: true })
     .catch((err) => next(err));
 
-    if (!newUser) res.sendStatus(404);
+    if (!newUser) return res.sendStatus(404);
 
     if (newUser.username !== req.user.username) {
       await TransactionModel.updateMany({ sender: req.user.username }, { sender: username }).catch((err) => next(err));
@@ -41,7 +41,10 @@ router.put('/', loggedInOnly, async (req, res, next) => {
       await LoanRequestModel.updateMany({ requestee: req.user.username }, { requestee: username }).catch((err) => next(err));
     }
 
-    res.status(201).json(await newUser.getFilteredUser());
+    const filteredUser = await newUser.getFilteredUser();
+    req.session.reload();
+
+    res.status(201).json(filteredUser);
   }
 );
 
@@ -51,24 +54,24 @@ router.put('/:username', adminOnly, async (req, res, next) => {
     const { firstName, lastName, newUsername, password, balance } = req.body;
 
     const userToUpdate = await UserModel.findOne({ username });
-    if (!userToUpdate) res.sendStatus(404);
+    if (!userToUpdate) return res.sendStatus(404);
 
     if (firstName) {
       if (firstName.length > 2)
         userToUpdate.firstName = firstName;
-      else res.status(400).send(`Invalid first name ${firstName}`)
+      else return res.status(400).send(`Invalid first name ${firstName}`)
     }
 
     if (lastName) {
       if (lastName.length > 2)
         userToUpdate.lastName = lastName;
-      else res.status(400).send(`Invalid last name ${lastName}`)
+      else return res.status(400).send(`Invalid last name ${lastName}`)
     }
 
     if (username) {
       if (/[a-z0-9_]{4,}/.test(username))
         userToUpdate.username = newUsername.toLowerCase();
-      else res.status(400).send(`Invalid username '${username}'`);
+      else return res.status(400).send(`Invalid username '${username}'`);
     }
 
     await userToUpdate.save().catch((err) => res.status(400).send(err.message));
@@ -76,11 +79,8 @@ router.put('/:username', adminOnly, async (req, res, next) => {
     if (password) {
       if (password.length > 8)
         userToUpdate.password = password;
-      else res.status(400).send(`Invalid password ${password}`);
+      else return res.status(400).send(`Invalid password ${password}`);
     }
-
-    if (Number.isNaN(+balance) || +balance < 0) res.status(400).send(`Invalid balance ${balance}`)
-    else if (+balance !== (await userToUpdate.getBalance())) await userToUpdate.setBalance(balance);
 
     if (userToUpdate.username !== username) {
       await TransactionModel.updateMany({ sender: username }, { sender: newUsername });
@@ -89,7 +89,15 @@ router.put('/:username', adminOnly, async (req, res, next) => {
       await LoanRequestModel.updateMany({ requestee: username }, { requestee: newUsername });
     }
 
-    res.status(201).json(await userToUpdate.getFilteredUser());
+    if (Number.isNaN(+balance) || +balance < 0) return res.status(400).send(`Invalid balance ${balance}`)
+    else if (+balance !== (await userToUpdate.getBalance())) await userToUpdate.setBalance(balance);
+
+    const filteredUser = await userToUpdate.getFilteredUser();
+
+    if (username === req.user.username)
+      req.session.reload();
+
+    res.status(201).json(filteredUser);
   } catch (err) {
     next(err);
   }
@@ -98,7 +106,7 @@ router.put('/:username', adminOnly, async (req, res, next) => {
 router.delete('/:username', adminOnly, (req, res, next) => {
   const { username } = req.params;
   UserModel.findOneAndDelete({ username })
-    .then((value) => value.getFilteredUser())
+    .then((value) => value?.getFilteredUser())
     .then((value) => (value ? res.json(value) : res.sendStatus(404)))
     .catch((err) => next(err));
 });
@@ -106,7 +114,7 @@ router.delete('/:username', adminOnly, (req, res, next) => {
 router.put('/promote', adminOnly, (req, res, next) => {
   const { username } = req.body;
   UserModel.findOneAndUpdate({ username }, { type: 'admin' }, { new: true })
-    .then((value) => value.getFilteredUser())
+    .then((value) => value?.getFilteredUser())
     .then((value) => (value ? res.json(value) : res.sendStatus(404)))
     .catch((err) => next(err));
 });
