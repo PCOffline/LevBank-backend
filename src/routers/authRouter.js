@@ -11,13 +11,20 @@ router.post(
   (req, res, next) => {
     passport.authenticate(
       'local',
-      { passReqToCallback: true, successRedirect: '/user/me' },
+      { passReqToCallback: true },
       (err, user, info) => {
         if (err) return next(err);
         if (!user) return res.status(400).send(info.message);
         if (!user.isApproved) return res.status(400).send('Account is not approved');
         req.login(user, (err) => {
           if (err) return next(err);
+          return res.json({
+            firstName: req.user.firstName,
+            lastName: req.user.lastName,
+            username: req.user.username,
+            type: req.user.type,
+            balance: req.user.balance,
+          });
         });
       },
     )(req, res, next);
