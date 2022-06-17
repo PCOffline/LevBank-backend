@@ -3,24 +3,25 @@ import mongoose from 'mongoose';
 const { Schema, model } = mongoose;
 
 const LoanRequestSchema = new Schema({
-  requester: { type: Schema.Types.String, required: true },
-  requestee: { type: Schema.Types.String, required: true },
+  recipient: { type: Schema.Types.String, required: true },
+  sender: { type: Schema.Types.String, required: true },
   amount: { type: Schema.Types.Number, required: true },
-  type: { type: Schema.Types.String, enum: ['loan', 'lend'], required: true },
-  status: { type: Schema.Types.String, required: true, enum: ['pending', 'approved', 'rejected', 'repaid']},
+  description: { type: Schema.Types.String, required: false },
+  status: { type: Schema.Types.String, required: true, enum: ['pending', 'approved', 'rejected', 'repaid', 'invalid']},
   timestamp: { type: Schema.Types.Date, default: new Date(), required: true },
+  expiryDate: { type: Schema.Types.Date, default: new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 30), required: true },
 });
 
-LoanRequestSchema.virtual('requesterUser', {
+LoanRequestSchema.virtual('recipientUser', {
   ref: 'User',
-  localField: 'requester',
+  localField: 'recipient',
   foreignField: 'username',
   justOne: true // for many-to-1 relationships
 });
 
-LoanRequestSchema.virtual('requesteeUser', {
+LoanRequestSchema.virtual('senderUser', {
   ref: 'User',
-  localField: 'requestee',
+  localField: 'sender',
   foreignField: 'username',
   justOne: true // for many-to-1 relationships
 });

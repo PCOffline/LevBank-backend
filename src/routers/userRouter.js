@@ -37,8 +37,8 @@ router.put('/', loggedInOnly, async (req, res, next) => {
     if (newUser.username !== req.user.username) {
       await TransactionModel.updateMany({ sender: req.user.username }, { sender: username }).catch((err) => next(err));
       await TransactionModel.updateMany({ recipient: req.user.username }, { recipient: username }).catch((err) => next(err));
-      await LoanRequestModel.updateMany({ requester: req.user.username }, { requester: username }).catch((err) => next(err));
-      await LoanRequestModel.updateMany({ requestee: req.user.username }, { requestee: username }).catch((err) => next(err));
+      await LoanRequestModel.updateMany({ recipient: req.user.username }, { recipient: username }).catch((err) => next(err));
+      await LoanRequestModel.updateMany({ sender: req.user.username }, { sender: username }).catch((err) => next(err));
     }
 
     const filteredUser = await newUser.getFilteredUser();
@@ -59,13 +59,13 @@ router.put('/:username', adminOnly, async (req, res, next) => {
     if (firstName) {
       if (firstName.length > 2)
         userToUpdate.firstName = firstName;
-      else return res.status(400).send(`Invalid first name ${firstName}`)
+      else return res.status(400).send(`Invalid first name ${firstName}`);
     }
 
     if (lastName) {
       if (lastName.length > 2)
         userToUpdate.lastName = lastName;
-      else return res.status(400).send(`Invalid last name ${lastName}`)
+      else return res.status(400).send(`Invalid last name ${lastName}`);
     }
 
     if (username) {
@@ -85,8 +85,8 @@ router.put('/:username', adminOnly, async (req, res, next) => {
     if (userToUpdate.username !== username) {
       await TransactionModel.updateMany({ sender: username }, { sender: newUsername });
       await TransactionModel.updateMany({ recipient: username }, { recipient: newUsername });
-      await LoanRequestModel.updateMany({ requester: username }, { requester: newUsername });
-      await LoanRequestModel.updateMany({ requestee: username }, { requestee: newUsername });
+      await LoanRequestModel.updateMany({ recipient: username }, { recipient: newUsername });
+      await LoanRequestModel.updateMany({ sender: username }, { sender: newUsername });
     }
 
     if (Number.isNaN(+balance) || +balance < 0) return res.status(400).send(`Invalid balance ${balance}`)
