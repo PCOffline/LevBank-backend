@@ -13,6 +13,7 @@ import User from './models/user.js';
 import flash from 'connect-flash';
 import { v4 as uuid } from 'uuid';
 import MongoStore from 'connect-mongo';
+import './alerter.js';
 
 dotenv.config();
 const app = express();
@@ -29,7 +30,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
   expressSession({
     store: new MongoStore({
-      mongoUrl: mongoUrl,
+      mongoUrl,
       collection: 'sessions'
     }),
     genid: (req) => uuid(),
