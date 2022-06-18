@@ -48,6 +48,22 @@ router.put('/', loggedInOnly, async (req, res, next) => {
   }
 );
 
+router.put('/password', loggedInOnly, async (req, res, next) => {
+  const { password } = req.body;
+
+  if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+
+  const newUser = await UserModel.findOneAndUpdate({ username: req.user.username }, { password }, { new: true })
+    .catch((err) => next(err));
+
+  if (!newUser) return res.sendStatus(404);
+
+  const filteredUser = await newUser.getFilteredUser();
+
+  req.session.reload();
+  res.status(201).json(filteredUser);
+});
+
 router.put('/:username', adminOnly, async (req, res, next) => {
   try {
     const { username } = req.params;
