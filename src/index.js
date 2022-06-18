@@ -3,6 +3,8 @@ import cors from 'cors';
 import userRouter from './routers/userRouter.js';
 import authRouter from './routers/authRouter.js';
 import financeRouter from './routers/financeRouter.js';
+import chatRouter from './routers/chatRouter.js';
+import alerterRouter from './routers/alerterRouter.js';
 import mongoose from 'mongoose';
 import passport from 'passport';
 import LocalStrategy from 'passport-local';
@@ -13,10 +15,12 @@ import User from './models/user.js';
 import flash from 'connect-flash';
 import { v4 as uuid } from 'uuid';
 import MongoStore from 'connect-mongo';
+import expressWs from 'express-ws';
 import './alerter.js';
 
 dotenv.config();
 const app = express();
+expressWs(app);
 
 const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost:27017/levbank';
     mongoose
@@ -50,11 +54,11 @@ app.use(
 app.use(flash());
 
 passport.serializeUser((user, done) => {
-  done(null, user._id);
+  done(null, user.username);
 });
 
-passport.deserializeUser((id, done) => {
-  User.findById(id, (err, user) => {
+passport.deserializeUser((username, done) => {
+  User.findOne({ username }, (err, user) => {
     user.getFilteredUser()
     .then((filteredUser) => done(err, filteredUser))
     .catch((err) => done(err, false));
@@ -81,6 +85,10 @@ passport.use(local);
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use('/auth', authRouter());
+app.use('/user', userRouter());
+app.use('/finance', financeRouter());
+app.use('/chat', chatRouter());
 
 app.use('/auth', authRouter);
 app.use('/user', userRouter);
