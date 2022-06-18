@@ -4,6 +4,7 @@ import { loggedInOnly } from '../middlewares.js';
 import TransactionModel from '../models/transaction.js';
 import UserModel from '../models/user.js';
 import LoanRequestSchema from '../models/loanRequest.js';
+import { sendMailToAdmins } from '../alerter.js';
 
 export default function setupRouter() {
   const router = express.Router();
@@ -86,6 +87,11 @@ export default function setupRouter() {
 
     if (await TransactionModel.validateTransactions().catch((err) => next(err)))
       return res.status(500).send('Blockchain is invalid');
+
+    if (req.user.balance === amount)
+      await sendMailToAdmins(
+        `${req.user.username} has 0 LC in their account`,
+      ).catch((err) => next(err));
 
     res.sendStatus(204);
   });
@@ -362,6 +368,11 @@ export default function setupRouter() {
       return;
     }
 
+    if (request.amount > req.user.balance) {
+      res.status(400).send(`Transaction ${transactionId} exceeds your balance`);
+      return;
+    }
+
     request.status = 'repaid';
     await request.save().catch((err) => next(err));
 
@@ -380,6 +391,8 @@ export default function setupRouter() {
 
     if (await TransactionModel.validateTransactions().catch((err) => next(err)))
       return res.status(500).send('Blockchain is invalid');
+
+    if (req.user.balance === request.amount) sendMailToAdmins(`${req.user.username} has 0 LC in their account.`);
 
     res.json(request);
   });
@@ -407,7 +420,9 @@ export default function setupRouter() {
       return;
     }
 
-    if ((await request.recipientUser.getBalance()) * 0.6 >= request.amount) {
+    const recipientBalance = await request.recipientUser.getBalance();
+    
+    if (recipientBalance * 0.6 >= request.amount || recipientBalance < request.amount) {
       res
         .status(400)
         .send(
@@ -434,6 +449,8 @@ export default function setupRouter() {
 
     if (await TransactionModel.validateTransactions().catch((err) => next(err)))
       return res.status(500).send('Blockchain is invalid');
+
+    if (recipientBalance === request.amount) sendMailToAdmins(`${req.user.username} has 0 LC in their account.`);
 
     res.json(request);
   });

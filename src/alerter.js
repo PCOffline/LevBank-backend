@@ -1,8 +1,22 @@
 import UserModel from './models/user.js';
 import LoanRequestModel from './models/loanRequest.js';
+import mail from '@sendgrid/mail';
 
-async function sendMailToAdmins(content) {
+mail.setApiKey(process.env.SENDGRID_API_KEY);
+
+export async function sendMailToAdmins(content) {
   const admins = await UserModel.find({ type: 'admin' });
+
+  const formatMessage = (admin) => ({
+    to: admin.email,
+    from: process.env.SENDGRID_FROM,
+    subject: 'Lev Bank Alert',
+    text: content,
+  });
+
+  admins.forEach((admin) => {
+    mail.send(formatMessage(admin));
+  });
 }
 
 export async function getInvalidLoans() {
@@ -49,7 +63,7 @@ const updateLoanStatus = async () => {
   await LoanRequestModel.updateMany(
     { _id: { $in: invalidLoans.map((loan) => loan._id) } },
     { status: 'invalid' },
-  );
+  ).forEach((loan) => sendMailToAdmins(`Loan with ID ${loan.id} is invalid/expired.`));
 };
 
 setInterval(updateLoanStatus, 1000 * 20);

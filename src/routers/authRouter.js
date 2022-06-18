@@ -2,6 +2,7 @@ import passport from 'passport';
 import express from 'express';
 import UserModel from '../models/user.js';
 import { loggedOutOnly, loggedInOnly } from '../middlewares.js';
+import { sendMailToAdmins } from 'c:/users/beker/desktop/react-backend/src/alerter.js';
 
 export default function setupRouter() {
   const router = express.Router();
@@ -41,6 +42,7 @@ export default function setupRouter() {
       isApproved: false,
     })
       .then((value) => res.status(201).json(value))
+      .then(() => sendMailToAdmins(`${firstName} ${lastName} has registered with the username ${username} and is awaiting approval`))
       .catch((err) => {
         if (err.name === 'ValidationError') {
           res.status(400).send('Sorry, that username is already taken.');
