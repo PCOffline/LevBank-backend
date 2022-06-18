@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import 'dotenv/config';
 import userRouter from './routers/userRouter.js';
 import authRouter from './routers/authRouter.js';
 import financeRouter from './routers/financeRouter.js';
@@ -8,7 +9,6 @@ import alerterRouter from './routers/alerterRouter.js';
 import mongoose from 'mongoose';
 import passport from 'passport';
 import LocalStrategy from 'passport-local';
-import dotenv from 'dotenv';
 import expressSession from 'express-session';
 import morgan from 'morgan';
 import User from './models/user.js';
@@ -18,7 +18,6 @@ import MongoStore from 'connect-mongo';
 import expressWs from 'express-ws';
 import './alerter.js';
 
-dotenv.config();
 const app = express();
 expressWs(app);
 

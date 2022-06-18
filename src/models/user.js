@@ -12,6 +12,7 @@ const UserSchema = new Schema({
   passwordHash: { type: Schema.Types.String },
   type: { type: Schema.Types.String, enum: ['client', 'admin'], required: true, default: 'client' },
   isApproved: { type: Schema.Types.Boolean, required: true, default: false },
+  email: { type: Schema.Types.String, required: true },
 });
 
 UserSchema.plugin(uniqueValidator);

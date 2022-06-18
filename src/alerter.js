@@ -60,10 +60,14 @@ export async function getZeroBalanceUsers() {
 const updateLoanStatus = async () => {
   const invalidLoans = await getInvalidLoans();
 
-  await LoanRequestModel.updateMany(
-    { _id: { $in: invalidLoans.map((loan) => loan._id) } },
-    { status: 'invalid' },
-  ).forEach((loan) => sendMailToAdmins(`Loan with ID ${loan.id} is invalid/expired.`));
+  (await LoanRequestModel.find({
+    _id: { $in: invalidLoans.map((loan) => loan._id) },
+    status: { $nin: ['invalid', 'repaid'] },
+  })).forEach((loan) => {
+    sendMailToAdmins(`Loan with ID ${loan.id} is invalid/expired.`);
+    loan.status = 'invalid';
+    loan.save();
+  });
 };
 
 setInterval(updateLoanStatus, 1000 * 20);
