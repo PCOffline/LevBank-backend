@@ -118,7 +118,6 @@ export default function setupRouter() {
     maxExpiryDate.setDate(maxExpiryDate.getDate() + 60);
 
     if (new Date(expiryDate) > maxExpiryDate) {
-      console.log(new Date(expiryDate), maxExpiryDate);
       res
         .status(400)
         .send('Expiry date must be not more than 60 days from today');

@@ -17,11 +17,11 @@ function setupRotuer() {
       });
 
       const formatInvalidLoan = (invalidLoan) =>
-        `Loan with ID ${invalidLoan.id} requested by ${
-          invalidLoan.requester
-        } to ${invalidLoan.requestee} on ${new Date(
+        `Loan requested by ${
+          invalidLoan.recipient
+        } to ${invalidLoan.sender} on ${new Date(
           invalidLoan.timestamp,
-        ).toLocaleDateString()} is ${
+        ).toLocaleDateString()} for ${invalidLoan.amount} LC is ${
           new Date(invalidLoan.expiryDate) < new Date() ? 'expired' : 'invalid'
         }.`;
 

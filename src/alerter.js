@@ -22,7 +22,7 @@ export async function sendMailToAdmins(content) {
 export async function getInvalidLoans() {
   const loans = await LoanRequestModel.find({
     type: 'loan',
-    status: 'approved',
+    status: { $in: ['invalid', 'approved'] },
   }).populate('recipientUser senderUser');
 
   const formattedLoans = await Promise.all(
@@ -64,7 +64,7 @@ const updateLoanStatus = async () => {
     _id: { $in: invalidLoans.map((loan) => loan._id) },
     status: { $nin: ['invalid', 'repaid'] },
   })).forEach((loan) => {
-    sendMailToAdmins(`Loan with ID ${loan.id} is invalid/expired.`);
+    sendMailToAdmins(`Loan with ID ${loan._id} is invalid/expired.`);
     loan.status = 'invalid';
     loan.save();
   });
