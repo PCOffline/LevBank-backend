@@ -3,11 +3,13 @@ import LoanRequestModel from './models/loanRequest.js';
 
 async function sendMailToAdmins(content) {
   const admins = await UserModel.find({ type: 'admin' });
-
 }
 
-async function getInvalidLoans() {
-  const loans = await LoanRequestModel.find({ type: 'loan', status: 'approved' }).populate('recipientUser senderUser');
+export async function getInvalidLoans() {
+  const loans = await LoanRequestModel.find({
+    type: 'loan',
+    status: 'approved',
+  }).populate('recipientUser senderUser');
 
   const formattedLoans = await Promise.all(
     loans.map(async (loan) => {
@@ -15,8 +17,14 @@ async function getInvalidLoans() {
 
       return {
         ...loan.toJSON(),
-        recipientUser: { ...recipientUser.toJSON(), balance: await recipientUser.getBalance() },
-        senderUser: { ...senderUser.toJSON(), balance: await senderUser.getBalance() },
+        recipientUser: {
+          ...recipientUser.toJSON(),
+          balance: await recipientUser.getBalance(),
+        },
+        senderUser: {
+          ...senderUser.toJSON(),
+          balance: await senderUser.getBalance(),
+        },
       };
     }),
   );
@@ -29,10 +37,19 @@ async function getInvalidLoans() {
   );
 }
 
+export async function getZeroBalanceUsers() {
+  const users = await UserModel.find();
+  const populatedUsers = await Promise.all(users.map((user) => user.getFilteredUser()));
+  return populatedUsers.filter((user) => user.balance === 0);
+}
+
 const updateLoanStatus = async () => {
   const invalidLoans = await getInvalidLoans();
 
-  await LoanRequestModel.updateMany({ _id: { $in: invalidLoans.map(loan => loan._id) } }, { status: 'invalid' });
+  await LoanRequestModel.updateMany(
+    { _id: { $in: invalidLoans.map((loan) => loan._id) } },
+    { status: 'invalid' },
+  );
 };
 
 setInterval(updateLoanStatus, 1000 * 20);

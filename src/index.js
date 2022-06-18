@@ -89,10 +89,7 @@ app.use('/auth', authRouter());
 app.use('/user', userRouter());
 app.use('/finance', financeRouter());
 app.use('/chat', chatRouter());
-
-app.use('/auth', authRouter);
-app.use('/user', userRouter);
-app.use('/finance', financeRouter);
+app.use('/alerter', alerterRouter());
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
