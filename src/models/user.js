@@ -63,6 +63,7 @@ UserSchema.methods.getFilteredUser = async function () {
     lastName: this.lastName,
     username: this.username,
     type: this.type,
+    email: this.email,
     balance: await this.getBalance(),
   };
 };
