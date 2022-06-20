@@ -58,7 +58,8 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser((username, done) => {
   User.findOne({ username }, (err, user) => {
-    user.getFilteredUser()
+    if (!user) done(err, false);
+    else user.getFilteredUser()
     .then((filteredUser) => done(err, filteredUser))
     .catch((err) => done(err, false));
   });
