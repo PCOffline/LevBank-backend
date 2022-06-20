@@ -23,6 +23,7 @@ export default function setupRouter() {
             lastName: req.user.lastName,
             username: req.user.username,
             type: req.user.type,
+            email: req.user.email,
             balance: req.user.balance,
           });
         });
