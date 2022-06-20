@@ -159,6 +159,14 @@ export default function setupRouter() {
           { sender: username },
           { sender: newUsername },
         );
+        await ChatModel.updateMany(
+          { sender: username },
+          { sender: newUsername },
+        );
+        await ChatModel.updateMany(
+          { recipient: username },
+          { recipient: newUsername },
+        );
       }
 
       if (Number.isNaN(+balance) || +balance < 0)
