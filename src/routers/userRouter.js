@@ -3,9 +3,21 @@ import { adminOnly, loggedInOnly } from '../middlewares.js';
 import TransactionModel from '../models/transaction.js';
 import UserModel from '../models/user.js';
 import LoanRequestModel from '../models/loanRequest.js';
+import ChatModel from '../models/chat.js';
 
 export default function setupRouter() {
   const router = express.Router();
+
+  const reloadSession = (req, res, filteredUser, next) => {
+    req.user = filteredUser;
+    req.login(filteredUser, (err) => {
+      if (err) {
+        return next(err);
+      }
+
+      res.json(filteredUser);
+    });
+  }
 
   router.get('/', loggedInOnly, (req, res) => {
     if (req.user.type === 'admin')
@@ -71,9 +83,8 @@ export default function setupRouter() {
     }
 
     const filteredUser = await newUser.getFilteredUser();
-    req.session.reload();
 
-    res.status(201).json(filteredUser);
+    reloadSession(req, res, filteredUser, next);
   });
 
   router.put('/password', loggedInOnly, async (req, res, next) => {
@@ -84,18 +95,18 @@ export default function setupRouter() {
         .status(400)
         .json({ error: 'Password must be at least 8 characters long' });
 
-    const newUser = await UserModel.findOneAndUpdate(
+    const user = await UserModel.findOne(
       { username: req.user.username },
-      { password },
-      { new: true },
     ).catch((err) => next(err));
 
-    if (!newUser) return res.sendStatus(404);
+    if (!user) return res.sendStatus(404);
 
-    const filteredUser = await newUser.getFilteredUser();
+    user.password = password;
+    await user.save();
 
-    req.session.reload();
-    res.status(201).json(filteredUser);
+    const filteredUser = await user.getFilteredUser();
+
+    reloadSession(req, res, filteredUser, next);
   });
 
   router.put('/:username', adminOnly, async (req, res, next) => {
@@ -157,9 +168,7 @@ export default function setupRouter() {
 
       const filteredUser = await userToUpdate.getFilteredUser();
 
-      if (username === req.user.username) req.session.reload();
-
-      res.status(201).json(filteredUser);
+      reloadSession(req, res, filteredUser, next);
     } catch (err) {
       next(err);
     }
