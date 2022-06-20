@@ -280,14 +280,6 @@ export default function setupRouter() {
       return;
     }
 
-    const maxExpiryDate = new Date();
-    maxExpiryDate.setDate(maxExpiryDate.getDate() + 30);
-
-    if (new Date(request.expiryDate) < maxExpiryDate) {
-      res.status(400).send(`Transaction ${transactionId} has expired`);
-      return;
-    }
-
     request.status = 'approved';
     await request.save().catch((err) => next(err));
 
@@ -307,7 +299,7 @@ export default function setupRouter() {
     if (await TransactionModel.validateTransactions().catch((err) => next(err)))
       return res.status(500).send('Blockchain is invalid');
 
-    res.sendStatus(204);
+    res.json(request);
   });
 
   router.post('/reject', loggedInOnly, async (req, res, next) => {
@@ -343,7 +335,7 @@ export default function setupRouter() {
     if (await TransactionModel.validateTransactions().catch((err) => next(err)))
       return res.status(500).send('Blockchain is invalid');
 
-    res.sendStatus(204);
+    res.status(request);
   });
 
   router.post('/repay', loggedInOnly, async (req, res, next) => {
@@ -394,7 +386,7 @@ export default function setupRouter() {
 
     if (req.user.balance === request.amount) sendMailToAdmins(`${req.user.username} has 0 LC in their account.`);
 
-    res.json(request);
+    res.sendStatus(204);
   });
 
   // Withdraw a lend (i.e. take back the lend)
